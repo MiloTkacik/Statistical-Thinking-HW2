@@ -1,0 +1,130 @@
+---
+title: "Statistical Thinking HW2"
+author: "Milo Tkacik"
+date: "2024-01-29"
+output: html_document
+---
+Milo Tkacik
+mat6226
+
+```{r echo=FALSE}
+#Reading in csv files and librarying things
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+Professors <- read.csv("profs.csv")
+Bikes <- read.csv("bikeshare.csv")
+Metro <- read.csv("capmetro_UT.csv")
+Billboard <- read.csv("billboard.csv")
+```
+###Problem 1
+```{r echo=FALSE}
+#Making a histogram
+ggplot(Professors, aes(x = eval)) +
+  geom_histogram(binwidth = 0.5, fill = "grey", color = "black", alpha = 0.7) +
+  ggtitle("Professor Evaluations") +
+  xlab("Evaluation Score") +
+  ylab("Frequency")
+```
+This graph shows most professors land in the 3.5-4.5 range of evaluations. The x-axis is the evaluations and the y-axis is how often that specific score appears.
+
+```{r echo=FALSE}
+#Making boxplots
+ggplot(Professors, aes(x=native, y=eval))+
+  geom_boxplot()+
+               ggtitle("Professor's Evaluation Scores and if they are a Native English Speaker")+
+               xlab("Native English Speaker")+
+               ylab("Evaluation Score")
+```
+This graph shows evaluation scores and if the professor's first language is English. The median score and 25%-75% for non native speakers are lower and the outliers for native speakers are more extreme being lower and higher.
+
+```{r echo=FALSE}
+#Making two histograms
+ggplot(Professors) +
+  geom_histogram(aes(x=eval)) +
+  #faceting the histograms
+  facet_wrap(~gender, nrow=1) +
+  ggtitle("Course Evaluation Scores by Males and Females")
+  xlab("Evaluation Score") +
+  ylab("Frequency")
+
+```
+This graph shows evaluation scores have a slightly higher peak for male professors than female professors.
+
+```{r echo=FALSE}
+#Making a scatterplot
+ggplot(Professors) +
+  geom_point(aes(x = beauty, y = eval)) +
+  ggtitle("Attractiveness and Course Evaluation Score Comparison") +
+  xlab("Attractiveness") +
+  ylab("Evaluation Score")
+```
+This scatterplot shows there is no correlation between how attractive the professor is considered to be and how high the evaluation score is.
+
+
+
+###Problem 2
+```{r echo=FALSE}
+#Finding the average hours bikes were rented and making a new subset with it
+rent_hours = Bikes %>%
+  group_by(hr) %>%
+  summarize(avg_rent = mean(total),
+            least_rent = min(total),
+            most_rent = max(total))
+#Making a line graph
+ggplot(rent_hours) +
+  geom_line(aes(x = hr, y = avg_rent)) +
+  ggtitle("Number of Bike Rentals for Each Hour of the Day") +
+  xlab("Hour") +
+  ylab("Number of Rentals")
+```
+This line graph shows the average number of bike rentals each hour of the day. It peaks around 7-8 in the morning and 6-7 in the afternoon.
+
+```{r echo=FALSE}
+#Mutating a variable to make it more clear
+rent_hours <- Bikes %>%
+  mutate(workingday = case_when(
+    workingday == "0" ~ "No Work",
+    workingday == "1" ~ "Work"
+  )) %>%
+  #Grouping variables and finding average rent hours
+  group_by(hr, workingday) %>%
+  summarize(avg_rent = mean(total),
+            least_rent = min(total),
+            most_rent = max(total))
+
+#Making and faceting line graphs
+ggplot(rent_hours) +
+  geom_line(aes(x = hr, y = avg_rent)) +
+  facet_wrap(~workingday, nrow = 1) +
+  ggtitle("Hourly Rentals on Work Days and Days Off") +
+  xlab("Hours") +
+  ylab("Average Rentals")
+
+  
+```
+This line graph also shows the hourly rentals but this time it's split into work days and non work days. The extremes are much less for the days off and it happens mid day instead of when people would normally be going to and from work.
+
+```{r echo=FALSE}
+#Filtering a data set and mutating a variable to make things clearer and smaller.
+Bikes <- Bikes %>%
+  filter(hr == 9) %>%
+  mutate(workingday = case_when(
+    workingday == "0" ~ "No Work",
+    workingday == "1" ~ "Work"
+  )) %>%
+  #Grouping variables and finding average hours rented
+  group_by(weathersit, workingday) %>%
+  summarize(avg_rent = mean(total),
+            least_rent = min(total),
+            most_rent = max(total))
+
+#Making and faceting bargraphs
+ggplot(Bikes) +
+  geom_col(aes(y = avg_rent, x = weathersit)) +
+  facet_wrap(~workingday, nrow = 1) +
+  ggtitle("Average Ridership at 9am in Different Weather Based on if it's a Work Day")
+  xlab("Average Ridership") +
+  ylab("Weather")
+```
+
